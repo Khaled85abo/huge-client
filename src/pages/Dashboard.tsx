@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface Project {
@@ -17,6 +17,7 @@ interface Project {
 
 const Dashboard: FC = () => {
     const navigate = useNavigate();
+    const [statusFilter, setStatusFilter] = useState<Project['status'] | 'all'>('all');
 
     // Mock data - replace with your actual data source
     const projects: Project[] = [
@@ -50,6 +51,10 @@ const Dashboard: FC = () => {
         return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
     };
 
+    const filteredProjects = projects.filter(project =>
+        statusFilter === 'all' ? true : project.status === statusFilter
+    );
+
     return (
         <div className="p-4 max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
@@ -63,8 +68,24 @@ const Dashboard: FC = () => {
                 </button>
             </div>
 
+            <div className="mb-6 flex gap-2">
+                {['all', 'pending', 'in-progress', 'completed', 'failed'].map((status) => (
+                    <button
+                        key={status}
+                        onClick={() => setStatusFilter(status as Project['status'] | 'all')}
+                        className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-colors
+                            ${statusFilter === status
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                    >
+                        {status}
+                    </button>
+                ))}
+            </div>
+
             <div className="space-y-4">
-                {projects.map((project) => (
+                {filteredProjects.map((project) => (
                     <div key={project.id} className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all">
                         <div className="flex justify-between items-start mb-4">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getStatusColor(project.status)}`}>
@@ -122,9 +143,13 @@ const Dashboard: FC = () => {
                     </div>
                 ))}
 
-                {projects.length === 0 && (
+                {filteredProjects.length === 0 && (
                     <div className="text-center py-12 bg-gray-50 rounded-lg">
-                        <p className="text-gray-500">No projects found. Create a new project to get started.</p>
+                        <p className="text-gray-500">
+                            {statusFilter === 'all'
+                                ? 'No projects found. Create a new project to get started.'
+                                : `No ${statusFilter} projects found.`}
+                        </p>
                     </div>
                 )}
             </div>
