@@ -1,5 +1,7 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAppSelector } from "../hooks/redux";
+
 
 interface Project {
     id: string;
@@ -18,7 +20,7 @@ interface Project {
 const Dashboard: FC = () => {
     const navigate = useNavigate();
     const [statusFilter, setStatusFilter] = useState<Project['status'] | 'all'>('all');
-
+    const user = useAppSelector((state) => state.auth.user);
     // Mock data - replace with your actual data source
     const projects: Project[] = [
         { id: '1', status: 'pending', startDate: '2024-01-01', ownership: 'John Doe', storageSource: 'Source 1', storageDestination: 'Destination 1' },
@@ -54,6 +56,37 @@ const Dashboard: FC = () => {
     const filteredProjects = projects.filter(project =>
         statusFilter === 'all' ? true : project.status === statusFilter
     );
+    function updateProgressBar(progress) {
+        // Update your progress bar UI component
+        const progressBar = document.getElementById('transfer-progress');
+        // progressBar.style.width = `${progress}%`;
+        // progressBar.setAttribute('aria-valuenow', progress);
+    }
+
+    useEffect(() => {
+        const userId = user?.id;
+        if (!userId) return;
+        const ws = new WebSocket(`ws://your-server/v1/ws/user/${userId}`);
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'transfer_progress') {
+                if (data.error) {
+                    // Handle error
+                    console.error('Transfer error:', data.error);
+                } else {
+                    // Update progress bar
+                    updateProgressBar(data.progress);
+                }
+            }
+        };
+        ws.onclose = () => {
+            console.log('WebSocket connection closed');
+        };
+        return () => {
+            ws.close();
+        };
+    }, []);
 
     return (
         <div className="p-4 max-w-7xl mx-auto">
