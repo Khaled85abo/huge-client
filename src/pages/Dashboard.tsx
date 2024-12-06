@@ -2,7 +2,6 @@ import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from "../hooks/redux";
 
-
 interface Project {
     id: string;
     status: 'pending' | 'in-progress' | 'completed' | 'failed';
@@ -21,13 +20,13 @@ const Dashboard: FC = () => {
     const navigate = useNavigate();
     const [statusFilter, setStatusFilter] = useState<Project['status'] | 'all'>('all');
     const user = useAppSelector((state) => state.auth.user);
-    // Mock data - replace with your actual data source
-    const projects: Project[] = [
+    const [currentFile, setCurrentFile] = useState<string>("");
+    const [projects, setProjects] = useState<Project[]>([
         { id: '1', status: 'pending', startDate: '2024-01-01', ownership: 'John Doe', storageSource: 'Source 1', storageDestination: 'Destination 1' },
         { id: '2', status: 'in-progress', startDate: '2024-01-02', ownership: 'Jane Doe', storageSource: 'Source 2', storageDestination: 'Destination 2', progress: 45, bytesTransferred: 450000000, totalBytes: 1000000000, estimatedTimeRemaining: 1800 },
         { id: '3', status: 'completed', startDate: '2024-01-03', completeDate: '2024-01-04', ownership: 'Alice Smith', storageSource: 'Source 3', storageDestination: 'Destination 3' },
         { id: '4', status: 'failed', startDate: '2024-01-05', ownership: 'Bob Johnson', storageSource: 'Source 4', storageDestination: 'Destination 4' },
-    ];
+    ]);
 
     const getStatusColor = (status: Project['status']) => {
         switch (status) {
@@ -53,15 +52,45 @@ const Dashboard: FC = () => {
         return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
     };
 
+    function updateProgressBar(progress: number) {
+        const updatedProjects = projects.map(project => {
+            if (project.status === 'in-progress') {
+                return {
+                    ...project,
+                    progress: progress
+                };
+            }
+            return project;
+        });
+        setProjects(updatedProjects);
+    }
+
+    function updateCurrentFile(filename: string) {
+        setCurrentFile(filename);
+    }
+
+    function updateTransferStats(
+        bytesTransferred: number,
+        totalBytes: number,
+        estimatedTimeRemaining: number
+    ) {
+        const updatedProjects = projects.map(project => {
+            if (project.status === 'in-progress') {
+                return {
+                    ...project,
+                    bytesTransferred,
+                    totalBytes,
+                    estimatedTimeRemaining
+                };
+            }
+            return project;
+        });
+        setProjects(updatedProjects);
+    }
+
     const filteredProjects = projects.filter(project =>
         statusFilter === 'all' ? true : project.status === statusFilter
     );
-    function updateProgressBar(progress) {
-        // Update your progress bar UI component
-        const progressBar = document.getElementById('transfer-progress');
-        // progressBar.style.width = `${progress}%`;
-        // progressBar.setAttribute('aria-valuenow', progress);
-    }
 
     useEffect(() => {
         const userId = user?.id;
@@ -72,11 +101,19 @@ const Dashboard: FC = () => {
             const data = JSON.parse(event.data);
             if (data.type === 'transfer_progress') {
                 if (data.error) {
-                    // Handle error
                     console.error('Transfer error:', data.error);
                 } else {
-                    // Update progress bar
                     updateProgressBar(data.progress);
+                    if (data.current_file) {
+                        updateCurrentFile(data.current_file);
+                    }
+                    if (data.bytes_transferred && data.total_bytes) {
+                        updateTransferStats(
+                            data.bytes_transferred,
+                            data.total_bytes,
+                            data.estimated_time_remaining
+                        );
+                    }
                 }
             }
         };
@@ -86,7 +123,7 @@ const Dashboard: FC = () => {
         return () => {
             ws.close();
         };
-    }, []);
+    }, [user?.id]);
 
     return (
         <div className="p-4 max-w-7xl mx-auto">
@@ -164,6 +201,13 @@ const Dashboard: FC = () => {
                                             )}
                                         </span>
                                     </div>
+
+                                    {currentFile && (
+                                        <div className="text-sm text-gray-500 mb-2">
+                                            Currently transferring: {currentFile}
+                                        </div>
+                                    )}
+
                                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                                         <div
                                             className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
