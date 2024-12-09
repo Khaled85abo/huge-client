@@ -2,18 +2,18 @@ import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from "../hooks/redux";
 import { Job } from '../redux/features/transfer/jobSlice';
-
+import config from '../config';
 
 
 const Dashboard: FC = () => {
     const navigate = useNavigate();
     const [statusFilter, setStatusFilter] = useState<Job['status'] | 'all'>('all');
     const user = useAppSelector((state) => state.auth.user);
-    const [currentFile, setCurrentFile] = useState<string>("");
+    // const [currentFile, setCurrentFile] = useState<string>("");
     // const stateJobs = useAppSelector((state) => state.job.jobs);
     const [jobs, setJobs] = useState<Job[]>([
         { id: '1', status: 'pending', startDate: '2024-01-01', ownership: 'John Doe', storageSource: 'Source 1', storageDestination: 'Destination 1' },
-        { id: '2', status: 'in-progress', startDate: '2024-01-02', ownership: 'Jane Doe', storageSource: 'Source 2', storageDestination: 'Destination 2', progress: 45, bytesTransferred: 450000000, totalBytes: 1000000000, estimatedTimeRemaining: 1800 },
+        { id: '2', status: 'in-progress', startDate: '2024-01-02', ownership: 'Jane Doe', storageSource: 'Source 2', storageDestination: 'Destination 2', progress: 10, bytesTransferred: 450000000, totalBytes: 1000000000, estimatedTimeRemaining: 1800 },
         { id: '3', status: 'completed', startDate: '2024-01-03', completeDate: '2024-01-04', ownership: 'Alice Smith', storageSource: 'Source 3', storageDestination: 'Destination 3' },
         { id: '4', status: 'failed', startDate: '2024-01-05', ownership: 'Bob Johnson', storageSource: 'Source 4', storageDestination: 'Destination 4' },
 
@@ -49,27 +49,28 @@ const Dashboard: FC = () => {
         return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
     };
 
-    function updateProgressBar(progress: number) {
-        const updatedJobs = jobs.map(job => {
-            if (job.status === 'in-progress') {
-                return {
-                    ...job,
-                    progress: progress
-                };
-            }
-            return job;
-        });
-        setJobs(updatedJobs);
-    }
+    // function updateProgressBar(progress: number) {
+    //     const updatedJobs = jobs.map(job => {
+    //         if (job.status === 'in-progress') {
+    //             return {
+    //                 ...job,
+    //                 progress: progress
+    //             };
+    //         }
+    //         return job;
+    //     });
+    //     setJobs(updatedJobs);
+    // }
 
-    function updateCurrentFile(filename: string) {
-        setCurrentFile(filename);
-    }
+    // function updateCurrentFile(filename: string) {
+    //     setCurrentFile(filename);
+    // }
 
     function updateTransferStats(
         bytesTransferred: number,
         totalBytes: number,
-        estimatedTimeRemaining: number
+        estimatedTimeRemaining: number,
+        progress: number
     ) {
         const updatedJobs = jobs.map(job => {
             if (job.status === 'in-progress') {
@@ -77,7 +78,9 @@ const Dashboard: FC = () => {
                     ...job,
                     bytesTransferred,
                     totalBytes,
-                    estimatedTimeRemaining
+                    estimatedTimeRemaining,
+                    progress
+
                 };
             }
             return job;
@@ -87,25 +90,34 @@ const Dashboard: FC = () => {
 
 
     useEffect(() => {
-        const userId = user?.id;
+        // const userId = user?.id;
+        const userId = 1;
         if (!userId) return;
-        const ws = new WebSocket(`ws://your-server/v1/ws/user/${userId}`);
+        const ws = new WebSocket(`${config.WS_USER_URL}/${userId}`);
+
+        ws.onopen = () => {
+            console.log('WebSocket connection opened');
+        };
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
+            console.log(data);
             if (data.type === 'transfer_progress') {
                 if (data.error) {
                     console.error('Transfer error:', data.error);
                 } else {
-                    updateProgressBar(data.progress);
-                    if (data.current_file) {
-                        updateCurrentFile(data.current_file);
-                    }
+                    // updateProgressBar(data.progress);
+                    // if (data.current_file) {
+                    //     console.log(data.current_file);
+                    //     updateCurrentFile(data.current_file);
+                    // }
                     if (data.bytes_transferred && data.total_bytes) {
+                        console.log(data.bytes_transferred, data.total_bytes);
                         updateTransferStats(
                             data.bytes_transferred,
                             data.total_bytes,
-                            data.estimated_time_remaining
+                            data.estimated_time_remaining,
+                            data.progress
                         );
                     }
                 }
@@ -190,7 +202,7 @@ const Dashboard: FC = () => {
                             {job.status === 'in-progress' && job.progress !== undefined && (
                                 <div>
                                     <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-gray-600">Transfer Progress</span>
+                                        <span className="text-gray-600">Transfer Progress <span className="text-gray-900 ml-3"> {job.progress}%</span> </span>
                                         <span className="text-gray-900">
                                             {formatBytes(job.bytesTransferred || 0)} of {formatBytes(job.totalBytes || 0)}
                                             {job.estimatedTimeRemaining && (
@@ -200,12 +212,13 @@ const Dashboard: FC = () => {
                                             )}
                                         </span>
                                     </div>
-
+                                    {/* for single file transfer info */}
+                                    {/* 
                                     {currentFile && (
                                         <div className="text-sm text-gray-500 mb-2">
                                             Currently transferring: {currentFile}
                                         </div>
-                                    )}
+                                    )} */}
 
                                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                                         <div
