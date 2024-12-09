@@ -3,7 +3,7 @@ import config from "../../../config"
 import { RootState } from "../../store"
 
 export const transferApi = createApi({
-    reducePath: "transfer",
+    reducerPath: "transfer",
     baseQuery: fetchBaseQuery({
         baseUrl: `${config.BACKEND_URL}/v1/transfer`,
         prepareHeaders: (headers, { getState }) => {

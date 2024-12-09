@@ -2,13 +2,14 @@ import { configureStore } from "@reduxjs/toolkit";
 
 import themeSlice from "./features/theme/themeSlice";
 import authSlice from "./features/auth/authSlice";
+import jobSlice from "./features/transfer/jobSlice";
 import { authApi } from "./features/auth/authApi";
 import { transferApi } from "./features/transfer/transferApi";
 export const store = configureStore({
   reducer: {
     theme: themeSlice,
     auth: authSlice,
-
+    job: jobSlice,
     [authApi.reducerPath]: authApi.reducer,
     [transferApi.reducerPath]: transferApi.reducer,
   },
