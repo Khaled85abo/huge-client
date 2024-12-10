@@ -13,7 +13,7 @@ const Dashboard: FC = () => {
     // const stateJobs = useAppSelector((state) => state.job.jobs);
     const [jobs, setJobs] = useState<Job[]>([
         { id: '1', status: 'pending', startDate: '2024-01-01', ownership: 'John Doe', storageSource: 'Source 1', storageDestination: 'Destination 1' },
-        { id: '2', status: 'in-progress', startDate: '2024-01-02', ownership: 'Jane Doe', storageSource: 'Source 2', storageDestination: 'Destination 2', progress: 10, bytesTransferred: 450000000, totalBytes: 1000000000, estimatedTimeRemaining: 1800 },
+        { id: '2', status: 'in-progress', startDate: '2024-01-02', ownership: 'Jane Doe', storageSource: '@pisms_/home/khaled/SMS-client', storageDestination: '@pimaster_/home/khaled/SMS-client', progress: 10, bytesTransferred: 450000000, totalBytes: 1000000000, estimatedTimeRemaining: 1800 },
         { id: '3', status: 'completed', startDate: '2024-01-03', completeDate: '2024-01-04', ownership: 'Alice Smith', storageSource: 'Source 3', storageDestination: 'Destination 3' },
         { id: '4', status: 'failed', startDate: '2024-01-05', ownership: 'Bob Johnson', storageSource: 'Source 4', storageDestination: 'Destination 4' },
 

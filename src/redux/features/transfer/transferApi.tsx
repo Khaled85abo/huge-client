@@ -16,9 +16,9 @@ export const transferApi = createApi({
         credentials: "include"
     }),
     endpoints: (builder) => ({
-        transfer: builder.mutation({
+        createJob: builder.mutation({
             query: (data) => ({
-                url: "",
+                url: "/test",
                 method: "POST",
                 body: data
             })
@@ -26,4 +26,4 @@ export const transferApi = createApi({
     })
 })
 
-export const { useTransferMutation } = transferApi;
+export const { useCreateJobMutation } = transferApi;
