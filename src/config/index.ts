@@ -11,8 +11,7 @@
 const appConfig = {
   BACKEND_URL: import.meta.env.VITE_API_URL,
   TRAINING_IMAGES_URL: `${import.meta.env.VITE_API_URL}/static/training_images/`,
-  WS_USER_URL: `${import.meta.env.VITE_API_URL}/v1/ws/user`,
-  WS_WORKSPACE_URL: `${import.meta.env.VITE_API_URL}/v1/ws/workspace`,
+  WS_USER_URL: `${import.meta.env.VITE_WS_URL}/v1/ws/user`,
   timeSyncDiff: 60, // in Minutes, New data will be fetched if the time difference is more than timeSyncDiff
 };
 console.log(import.meta.env.VITE_MOBILE);
