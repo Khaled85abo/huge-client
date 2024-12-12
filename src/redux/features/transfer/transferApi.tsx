@@ -22,8 +22,14 @@ export const transferApi = createApi({
                 method: "POST",
                 body: data
             })
+        }),
+        getJobs: builder.query({
+            query: () => ({
+                url: "",
+                method: "GET"
+            })
         })
     })
 })
 
-export const { useCreateJobMutation } = transferApi;
+export const { useCreateJobMutation, useLazyGetJobsQuery } = transferApi;

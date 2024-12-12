@@ -1,29 +1,43 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+export enum JobStatus {
+    PENDING = 'pending',
+    IN_PROGRESS = 'in-progress',
+    COMPLETED = 'completed',
+    FAILED = 'failed'
+}
+
 export interface Job {
-    id: string;
-    status: 'pending' | 'in-progress' | 'completed' | 'failed';
-    startDate: string;
-    completeDate?: string;
+    id: number;
+    status: JobStatus;
+    user_id: number;
+    task_id: string;
+    created_date: Date;
+    updated_date: Date;
+    completeDate?: Date;
+    description: string | null;
     ownership: string;
-    storageSource: string;
-    storageDestination: string;
+    source_storage: string;
+    dest_storage: string;
     progress?: number;
     bytesTransferred?: number;
     totalBytes?: number;
     estimatedTimeRemaining?: number;
 }
+
+export interface JobUpdate {
+    job_id: number;
+    status: JobStatus;
+    task_id: string;
+    current: number;
+    total: number;
+    percent: number;
+}
 type InitialState = {
     jobs: Job[];
 };
 const initialState: InitialState = {
-    jobs: [
-        { id: '1', status: 'pending', startDate: '2024-01-01', ownership: 'John Doe', storageSource: 'Source 1', storageDestination: 'Destination 1' },
-        { id: '2', status: 'in-progress', startDate: '2024-01-02', ownership: 'Jane Doe', storageSource: 'Source 2', storageDestination: 'Destination 2', progress: 45, bytesTransferred: 450000000, totalBytes: 1000000000, estimatedTimeRemaining: 1800 },
-        { id: '3', status: 'completed', startDate: '2024-01-03', completeDate: '2024-01-04', ownership: 'Alice Smith', storageSource: 'Source 3', storageDestination: 'Destination 3' },
-        { id: '4', status: 'failed', startDate: '2024-01-05', ownership: 'Bob Johnson', storageSource: 'Source 4', storageDestination: 'Destination 4' },
-
-    ],
+    jobs: [],
 };
 
 export const jobSlice = createSlice({
