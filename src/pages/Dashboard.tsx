@@ -95,13 +95,35 @@ const Dashboard: FC = () => {
         if (!userId) return;
         const ws = new WebSocket(`${config.WS_USER_URL}/${userId}`);
 
+
         ws.onopen = () => {
             console.log('WebSocket connection opened');
+            // Start monitoring specific jobs
+            ws.send(JSON.stringify({
+                type: "monitor_jobs",
+                job_ids: jobs.filter(job => job.status === 'in-progress' || job.status === 'pending').map(job => job.id)
+            }));
         };
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log(data);
+            // if (data.type === "job_updates") {
+            //     data.updates.forEach(update => {
+            //         // Update UI based on job status and progress
+            //         if (update.status === 'PROGRESS') {
+            //             // Update progress bar
+            //             const percent = update.percent;
+            //             updateProgressBar(update.job_id, percent);
+            //         } else if (update.status === 'SUCCESS') {
+            //             // Handle completion
+            //             showSuccess(update.job_id);
+            //         } else if (update.status === 'FAILURE') {
+            //             // Handle failure
+            //             showError(update.job_id);
+            //         }
+            //     });
+            // }
             if (data.type === 'transfer_progress') {
                 if (data.error) {
                     console.error('Transfer error:', data.error);
