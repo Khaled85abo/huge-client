@@ -18,7 +18,7 @@ export const transferApi = createApi({
     endpoints: (builder) => ({
         createJob: builder.mutation({
             query: (data) => ({
-                url: "/test",
+                url: "",
                 method: "POST",
                 body: data
             })
