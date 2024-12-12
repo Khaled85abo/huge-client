@@ -62,19 +62,21 @@ const Dashboard: FC = () => {
     // }
 
     function updateJobProgress(jobId: number, progress: number, current: number, total: number) {
-        const updatedJobs = jobs.map((job: Job) => {
-            if (job.id === jobId) {
-                return {
-                    ...job,
-                    status: JobStatus.IN_PROGRESS,
-                    progress: progress,
-                    bytesTransferred: current,
-                    totalBytes: total
-                };
-            }
-            return job;
+        setJobs((prevJobs) => {
+            const updatedJobs = prevJobs.map((job: Job) => {
+                if (job.id === jobId) {
+                    return {
+                        ...job,
+                        status: JobStatus.IN_PROGRESS,
+                        progress,
+                        bytesTransferred: current,
+                        totalBytes: total
+                    };
+                }
+                return job;
+            });
+            return updatedJobs;
         });
-        setJobs(updatedJobs);
     }
 
 
@@ -175,7 +177,7 @@ const Dashboard: FC = () => {
                             <div>
                                 <span className="text-gray-600 text-sm">Dates</span>
                                 <p className="text-gray-900">
-                                    Start: {new Date(job.created_date).toLocaleString('en-US', {
+                                    Start: {new Date(job.created_date).toLocaleString(['en', 'sv-SE'], {
                                         weekday: 'short',
                                         year: 'numeric',
                                         month: 'numeric',
@@ -184,7 +186,7 @@ const Dashboard: FC = () => {
                                         minute: '2-digit'
                                     })}
                                     {job.completeDate && (
-                                        <span className="ml-2">• Complete: {new Date(job.completeDate).toLocaleString('en-US', {
+                                        <span className="ml-2">• Complete: {new Date(job.completeDate).toLocaleString(['en', 'sv-SE'], {
                                             weekday: 'short',
                                             year: 'numeric',
                                             month: 'numeric',
