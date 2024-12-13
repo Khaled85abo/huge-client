@@ -109,6 +109,9 @@ const Dashboard: FC = () => {
                     );
                 });
             }
+            if (data.type === "job_completion") {
+                fetchJobs();
+            }
 
         };
         ws.onclose = () => {
@@ -119,7 +122,7 @@ const Dashboard: FC = () => {
         };
     }, [user?.id]);
 
-    const populateJobs = async () => {
+    const fetchJobs = async () => {
         const response = await getJobs({});
         console.log(response);
         if (response.data) {
@@ -128,7 +131,7 @@ const Dashboard: FC = () => {
     }
 
     useEffect(() => {
-        populateJobs();
+        fetchJobs();
     }, []);
 
     if (isLoading) return <div>Loading...</div>;
