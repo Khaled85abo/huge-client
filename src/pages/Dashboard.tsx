@@ -1,23 +1,18 @@
 import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from "../hooks/redux";
-import { Job } from '../redux/features/transfer/jobSlice';
+import { Job, JobUpdate, JobStatus } from '../redux/features/transfer/jobSlice';
 import config from '../config';
-
+import { useLazyGetJobsQuery } from '../redux/features/transfer/transferApi';
 
 const Dashboard: FC = () => {
     const navigate = useNavigate();
     const [statusFilter, setStatusFilter] = useState<Job['status'] | 'all'>('all');
+    const [getJobs, { isLoading, error }] = useLazyGetJobsQuery();
     const user = useAppSelector((state) => state.auth.user);
     // const [currentFile, setCurrentFile] = useState<string>("");
     // const stateJobs = useAppSelector((state) => state.job.jobs);
-    const [jobs, setJobs] = useState<Job[]>([
-        { id: '1', status: 'pending', startDate: '2024-01-01', ownership: 'John Doe', storageSource: 'Source 1', storageDestination: 'Destination 1' },
-        { id: '2', status: 'in-progress', startDate: '2024-01-02', ownership: 'Jane Doe', storageSource: '@pisms_/home/khaled/SMS-client', storageDestination: '@pimaster_/home/khaled/SMS-client', progress: 10, bytesTransferred: 450000000, totalBytes: 1000000000, estimatedTimeRemaining: 1800 },
-        { id: '3', status: 'completed', startDate: '2024-01-03', completeDate: '2024-01-04', ownership: 'Alice Smith', storageSource: 'Source 3', storageDestination: 'Destination 3' },
-        { id: '4', status: 'failed', startDate: '2024-01-05', ownership: 'Bob Johnson', storageSource: 'Source 4', storageDestination: 'Destination 4' },
-
-    ]);
+    const [jobs, setJobs] = useState<Job[]>([]);
 
 
 
@@ -66,26 +61,22 @@ const Dashboard: FC = () => {
     //     setCurrentFile(filename);
     // }
 
-    function updateTransferStats(
-        bytesTransferred: number,
-        totalBytes: number,
-        estimatedTimeRemaining: number,
-        progress: number
-    ) {
-        const updatedJobs = jobs.map(job => {
-            if (job.status === 'in-progress') {
-                return {
-                    ...job,
-                    bytesTransferred,
-                    totalBytes,
-                    estimatedTimeRemaining,
-                    progress
-
-                };
-            }
-            return job;
+    function updateJobProgress(jobId: number, progress: number, current: number, total: number) {
+        setJobs((prevJobs) => {
+            const updatedJobs = prevJobs.map((job: Job) => {
+                if (job.id === jobId) {
+                    return {
+                        ...job,
+                        status: JobStatus.IN_PROGRESS,
+                        progress,
+                        bytesTransferred: current,
+                        totalBytes: total
+                    };
+                }
+                return job;
+            });
+            return updatedJobs;
         });
-        setJobs(updatedJobs);
     }
 
 
@@ -95,33 +86,33 @@ const Dashboard: FC = () => {
         if (!userId) return;
         const ws = new WebSocket(`${config.WS_USER_URL}/${userId}`);
 
+
         ws.onopen = () => {
             console.log('WebSocket connection opened');
+            // Start monitoring specific jobs
+            ws.send(JSON.stringify({
+                type: "monitor_jobs",
+                job_ids: jobs.filter(job => job.status === 'in-progress' || job.status === 'pending').map(job => job.id)
+            }));
         };
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log(data);
-            if (data.type === 'transfer_progress') {
-                if (data.error) {
-                    console.error('Transfer error:', data.error);
-                } else {
-                    // updateProgressBar(data.progress);
-                    // if (data.current_file) {
-                    //     console.log(data.current_file);
-                    //     updateCurrentFile(data.current_file);
-                    // }
-                    if (data.bytes_transferred && data.total_bytes) {
-                        console.log(data.bytes_transferred, data.total_bytes);
-                        updateTransferStats(
-                            data.bytes_transferred,
-                            data.total_bytes,
-                            data.estimated_time_remaining,
-                            data.progress
-                        );
-                    }
-                }
+            if (data.type === "job_updates") {
+                data.updates.forEach((update: JobUpdate) => {
+                    updateJobProgress(
+                        update.job_id,
+                        update.percent,
+                        update.current,
+                        update.total
+                    );
+                });
             }
+            if (data.type === "job_completion") {
+                fetchJobs();
+            }
+
         };
         ws.onclose = () => {
             console.log('WebSocket connection closed');
@@ -131,9 +122,20 @@ const Dashboard: FC = () => {
         };
     }, [user?.id]);
 
-    // useEffect(() => {
-    //     setJobs(stateJobs);
-    // }, [stateJobs]);
+    const fetchJobs = async () => {
+        const response = await getJobs({});
+        console.log(response);
+        if (response.data) {
+            setJobs(response.data);
+        }
+    }
+
+    useEffect(() => {
+        fetchJobs();
+    }, []);
+
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error?.message || "Unknown error"}</div>;
 
 
     return (
@@ -166,7 +168,7 @@ const Dashboard: FC = () => {
             </div>
 
             <div className="space-y-4">
-                {filteredJobs.map((job) => (
+                {filteredJobs.map((job: Job) => (
                     <div key={job.id} className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all">
                         <div className="flex justify-between items-start mb-4">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getStatusColor(job.status)}`}>
@@ -178,9 +180,23 @@ const Dashboard: FC = () => {
                             <div>
                                 <span className="text-gray-600 text-sm">Dates</span>
                                 <p className="text-gray-900">
-                                    Start: {new Date(job.startDate).toLocaleDateString()}
+                                    Start: {new Date(job.created_date).toLocaleString(['en', 'sv-SE'], {
+                                        weekday: 'short',
+                                        year: 'numeric',
+                                        month: 'numeric',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
                                     {job.completeDate && (
-                                        <span className="ml-2">• Complete: {new Date(job.completeDate).toLocaleDateString()}</span>
+                                        <span className="ml-2">• Complete: {new Date(job.completeDate).toLocaleString(['en', 'sv-SE'], {
+                                            weekday: 'short',
+                                            year: 'numeric',
+                                            month: 'numeric',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}</span>
                                     )}
                                 </p>
                             </div>
@@ -193,9 +209,9 @@ const Dashboard: FC = () => {
                             <div>
                                 <span className="text-gray-600 text-sm">Storage</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-gray-900">From: {job.storageSource}</span>
+                                    <span className="text-gray-900">From: {job.source_storage}</span>
                                     <span className="text-gray-400">→</span>
-                                    <span className="text-gray-900">To: {job.storageDestination}</span>
+                                    <span className="text-gray-900">To: {job.dest_storage}</span>
                                 </div>
                             </div>
 

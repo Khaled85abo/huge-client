@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-
+import { useCreateJobMutation } from '../redux/features/transfer/transferApi';
 const Transfer = () => {
+    const [createJob, { isLoading, isSuccess }] = useCreateJobMutation();
     const [formData, setFormData] = useState({
-        organisation: '',
-        email: '',
-        fileLocation: '',
-        fileDestination: '',
+        organisation: 'org',
+        email: 'org@org.com',
+        source_storage: '/home/khaled/SMS-client',
+        dest_storage: '/home/khaled/SMS-client',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         // Handle form submission here
         console.log('Form submitted:', formData);
+        createJob({ source_storage: formData.source_storage, dest_storage: formData.dest_storage });
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,8 +66,8 @@ const Transfer = () => {
                         <input
                             type="text"
                             id="fileLocation"
-                            name="fileLocation"
-                            value={formData.fileLocation}
+                            name="source_storage"
+                            value={formData.source_storage}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
                             required
@@ -79,8 +81,8 @@ const Transfer = () => {
                         <input
                             type="text"
                             id="fileDestination"
-                            name="fileDestination"
-                            value={formData.fileDestination}
+                            name="dest_storage"
+                            value={formData.dest_storage}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
                             required
@@ -88,12 +90,14 @@ const Transfer = () => {
                     </div>
 
                     <button
+                        disabled={isLoading}
                         type="submit"
-                        className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+                        className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Submit Transfer Request
+                        {isLoading ? 'Transferring...' : 'Submit Transfer Request'}
                     </button>
                 </form>
+                {isSuccess && <div className="mt-4 text-green-500">Transfer request submitted successfully!</div>}
             </div>
         </div>
     );
