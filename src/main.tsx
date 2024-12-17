@@ -24,7 +24,7 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import {
   useLazyMeQuery,
 } from "./redux/features/auth/authApi";
-import config from "./config";
+// import config from "./config";
 import Transfer from "./pages/Transfer";
 import Dashboard from "./pages/Dashboard";
 
@@ -64,52 +64,51 @@ function App() {
 
   };
 
-  useEffect(() => {
-    let ws: WebSocket | null = null;
+  // useEffect(() => {
+  //   let ws: WebSocket | null = null;
 
-    const connectWebSocket = () => {
-      if (!user?.id) return;
+  //   const connectWebSocket = () => {
+  //     if (!user?.id) return;
 
-      ws = new WebSocket(`${config.WS_USER_URL}/${user.id}`);
+  //     ws = new WebSocket(`${config.WS_USER_URL}/${user.id}`);
 
-      ws.onopen = () => {
-        console.log("WebSocket Connected");
-      };
+  //     ws.onopen = () => {
+  //       console.log("WebSocket Connected");
+  //     };
 
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        // Handle incoming messages here
-        switch (data.type) {
-          case "transfer_status":
-            console.log(data);
-            break;
-        }
-      };
+  //     ws.onmessage = (event) => {
+  //       const data = JSON.parse(event.data);
+  //       // Handle incoming messages here
+  //       switch (data.type) {
+  //         case "transfer_status":
+  //           console.log(data);
+  //           break;
+  //       }
+  //     };
 
-      ws.onclose = () => {
-        console.log("WebSocket Disconnected");
-        // Attempt to reconnect after 5 seconds
-        setTimeout(connectWebSocket, 5000);
-      };
+  //     ws.onclose = () => {
+  //       console.log("WebSocket Disconnected");
+  //       // Attempt to reconnect after 5 seconds
+  //       setTimeout(connectWebSocket, 5000);
+  //     };
 
-      ws.onerror = (error) => {
-        console.error("WebSocket Error:", error);
-        ws?.close();
-      };
-    };
+  //     ws.onerror = (error) => {
+  //       console.error("WebSocket Error:", error);
+  //       ws?.close();
+  //     };
+  //   };
 
-    if (token && user?.id) {
-      getUserInfo();
-      connectWebSocket();
-    }
+  //   if (token && user?.id) {
+  //     connectWebSocket();
+  //   }
 
-    // Cleanup function
-    return () => {
-      if (ws) {
-        ws.close();
-      }
-    };
-  }, [token, user?.id]);
+  //   // Cleanup function
+  //   return () => {
+  //     if (ws) {
+  //       ws.close();
+  //     }
+  //   };
+  // }, [token, user?.id]);
 
   useEffect(() => {
     getUserInfo();
@@ -132,9 +131,9 @@ function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<Landing />}></Route>
         <Route path="/about" element={<About />}></Route>
-        <Route path="/transfer" element={<Transfer />}></Route>
-        <Route path="/dashboard" element={<Dashboard />}></Route>
         <Route element={<ProtectedRoutes />}>
+          <Route path="/transfer" element={<Transfer />}></Route>
+          <Route path="/dashboard" element={<Dashboard />}></Route>
         </Route>
         <Route path="/login" element={<Login />}></Route>
         <Route path="/signup" element={<Signup />}></Route>

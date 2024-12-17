@@ -7,7 +7,6 @@ import { useLazyGetJobsQuery } from '../redux/features/transfer/transferApi';
 
 const Dashboard: FC = () => {
     const navigate = useNavigate();
-    const [currentJobId, setCurrentJobId] = useState<number | null>(null);
     const [statusFilter, setStatusFilter] = useState<Job['status'] | 'all'>('all');
     const [getJobs, { isLoading, error }] = useLazyGetJobsQuery();
     const user = useAppSelector((state) => state.auth.user);
@@ -85,8 +84,7 @@ const Dashboard: FC = () => {
 
 
     useEffect(() => {
-        // const userId = user?.id;
-        const userId = 1;
+        const userId = user?.id;
         if (!userId) return;
         const ws = new WebSocket(`${config.WS_USER_URL}/${userId}`);
 
