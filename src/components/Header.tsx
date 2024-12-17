@@ -1,7 +1,8 @@
 import { NavLink, useLocation, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { toggleTheme } from "../redux/features/theme/themeSlice";
-import { logout } from "../redux/features/auth/authSlice";
+import { useLogoutMutation } from "../redux/features/auth/authApi";
+// import { logout } from "../redux/features/auth/authSlice";
 import { useEffect, useReducer, useState } from "react";
 import smarderobeLogo from "../assets/logo/smarderobe-high-resolution-logo-white-transparent.png";
 // import SmarderobeLogo from "../assets/logo/smarderobe-high-resolution-logo.png";
@@ -19,6 +20,7 @@ export default Header;
 const Menu = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const [logout] = useLogoutMutation();
   const [showDropDown, toggleShowDropDown] = useReducer(
     (state: boolean) => !state,
     false
@@ -26,6 +28,11 @@ const Menu = () => {
   const location = useLocation();
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showMenu, setShowMenu] = useState(true);
+
+  const handleLogout = async () => {
+    await logout({}).unwrap();
+  };
+
   useEffect(() => {
     if (showDropDown) {
       toggleShowDropDown();
@@ -173,18 +180,20 @@ const Menu = () => {
             </li>
             {user ? (
               <>
-                <li onClick={() => dispatch(logout())} className={tab}>
+                <li onClick={handleLogout} className={tab}>
                   Logout
                 </li>
               </>
             ) : (
               <li>
-                <NavLink
+                {/* <NavLink
                   to="/login"
                   className={({ isActive }) => (isActive ? activeTab : tab)}
-                >
+                > */}
+                <button onClick={() => window.location.href = config.BACKEND_URL + "/v1/login"}>
                   Login
-                </NavLink>
+                </button>
+                {/* </NavLink> */}
               </li>
             )}
             <li onClick={() => dispatch(toggleTheme())} className={tab}>

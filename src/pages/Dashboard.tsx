@@ -7,6 +7,7 @@ import { useLazyGetJobsQuery } from '../redux/features/transfer/transferApi';
 
 const Dashboard: FC = () => {
     const navigate = useNavigate();
+    const [currentJobId, setCurrentJobId] = useState<number | null>(null);
     const [statusFilter, setStatusFilter] = useState<Job['status'] | 'all'>('all');
     const [getJobs, { isLoading, error }] = useLazyGetJobsQuery();
     const user = useAppSelector((state) => state.auth.user);
@@ -61,7 +62,10 @@ const Dashboard: FC = () => {
     //     setCurrentFile(filename);
     // }
 
+
+
     function updateJobProgress(jobId: number, progress: number, current: number, total: number) {
+
         setJobs((prevJobs) => {
             const updatedJobs = prevJobs.map((job: Job) => {
                 if (job.id === jobId) {

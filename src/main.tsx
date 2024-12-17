@@ -111,6 +111,10 @@ function App() {
     };
   }, [token, user?.id]);
 
+  useEffect(() => {
+    getUserInfo();
+  }, []);
+
   // useEffect(() => {
   //   const intervalId = setInterval(() => {
   //     console.log("refresh token interval");

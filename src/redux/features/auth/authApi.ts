@@ -95,6 +95,12 @@ export const authApi = createApi({
         }
       },
     }),
+    logout: builder.mutation({
+      query: () => ({
+        url: "/users/logout",
+        method: "POST",
+      }),
+    }),
     resetPasswordRequest: builder.mutation({
       query: (body) => ({
         url: "/users/reset-password-request",
@@ -126,6 +132,7 @@ export const {
   useLazyMeQuery,
   useRegisterMutation,
   useLoginMutation,
+  useLogoutMutation,
   useResetPasswordRequestMutation,
   useResetPasswordMutation,
   useResendVerificationEmailMutation
