@@ -61,7 +61,10 @@ const Dashboard: FC = () => {
     //     setCurrentFile(filename);
     // }
 
+
+
     function updateJobProgress(jobId: number, progress: number, current: number, total: number) {
+
         setJobs((prevJobs) => {
             const updatedJobs = prevJobs.map((job: Job) => {
                 if (job.id === jobId) {
@@ -81,8 +84,7 @@ const Dashboard: FC = () => {
 
 
     useEffect(() => {
-        // const userId = user?.id;
-        const userId = 1;
+        const userId = user?.id;
         if (!userId) return;
         const ws = new WebSocket(`${config.WS_USER_URL}/${userId}`);
 

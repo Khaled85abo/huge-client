@@ -1,7 +1,8 @@
 import { NavLink, useLocation, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { toggleTheme } from "../redux/features/theme/themeSlice";
-import { logout } from "../redux/features/auth/authSlice";
+import { useLogoutMutation } from "../redux/features/auth/authApi";
+// import { logout } from "../redux/features/auth/authSlice";
 import { useEffect, useReducer, useState } from "react";
 import smarderobeLogo from "../assets/logo/smarderobe-high-resolution-logo-white-transparent.png";
 // import SmarderobeLogo from "../assets/logo/smarderobe-high-resolution-logo.png";
@@ -19,6 +20,7 @@ export default Header;
 const Menu = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const [logout] = useLogoutMutation();
   const [showDropDown, toggleShowDropDown] = useReducer(
     (state: boolean) => !state,
     false
@@ -26,6 +28,11 @@ const Menu = () => {
   const location = useLocation();
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showMenu, setShowMenu] = useState(true);
+
+  const handleLogout = async () => {
+    await logout({}).unwrap();
+  };
+
   useEffect(() => {
     if (showDropDown) {
       toggleShowDropDown();
@@ -61,9 +68,9 @@ const Menu = () => {
   }, [lastScrollY]);
 
   const activeTab =
-    "block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500";
+    "cursor-pointer block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500";
   const tab =
-    "block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent";
+    "cursor-pointer block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent";
   return (
     <nav
       className={` z-10 bg-mutedTeal border-gray-200 dark:bg-gray-900 fixed w-full transition-transform duration-300 transform ${showMenu ? "translate-y-0" : "-translate-y-full"
@@ -173,18 +180,20 @@ const Menu = () => {
             </li>
             {user ? (
               <>
-                <li onClick={() => dispatch(logout())} className={tab}>
+                <li onClick={handleLogout} className={tab}  >
                   Logout
                 </li>
               </>
             ) : (
               <li>
-                <NavLink
+                {/* <NavLink
                   to="/login"
                   className={({ isActive }) => (isActive ? activeTab : tab)}
-                >
+                > */}
+                <button className={tab} onClick={() => window.location.href = config.BACKEND_URL + "/v1/login"}>
                   Login
-                </NavLink>
+                </button>
+                {/* </NavLink> */}
               </li>
             )}
             <li onClick={() => dispatch(toggleTheme())} className={tab}>
