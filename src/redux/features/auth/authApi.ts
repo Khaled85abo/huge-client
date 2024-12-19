@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import config from "../../../config";
-import { setToken, setUser } from "./authSlice";
+import { setToken, setUser, clearToken, clearUser } from "./authSlice";
 import { RootState } from "../../store";
 
 // Define types for better type safety
@@ -100,6 +100,15 @@ export const authApi = createApi({
         url: "/users/logout",
         method: "POST",
       }),
+      onQueryStarted: async (_, { queryFulfilled, dispatch }) => {
+        try {
+          await queryFulfilled;
+          dispatch(clearToken());
+          dispatch(clearUser());
+        } catch (error) {
+          console.error("Error during logout: ", error);
+        }
+      },
     }),
     resetPasswordRequest: builder.mutation({
       query: (body) => ({

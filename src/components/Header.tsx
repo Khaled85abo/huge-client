@@ -1,7 +1,7 @@
 import { NavLink, useLocation, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { toggleTheme } from "../redux/features/theme/themeSlice";
-import { useLogoutMutation } from "../redux/features/auth/authApi";
+import { clearToken, clearUser } from "../redux/features/auth/authSlice";
 // import { logout } from "../redux/features/auth/authSlice";
 import { useEffect, useReducer, useState } from "react";
 import smarderobeLogo from "../assets/logo/smarderobe-high-resolution-logo-white-transparent.png";
@@ -20,7 +20,6 @@ export default Header;
 const Menu = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
-  const [logout] = useLogoutMutation();
   const [showDropDown, toggleShowDropDown] = useReducer(
     (state: boolean) => !state,
     false
@@ -30,7 +29,9 @@ const Menu = () => {
   const [showMenu, setShowMenu] = useState(true);
 
   const handleLogout = async () => {
-    await logout({}).unwrap();
+    dispatch(clearToken());
+    dispatch(clearUser());
+    window.location.href = config.BACKEND_URL + "/v1/users/logout";
   };
 
   useEffect(() => {
@@ -162,24 +163,24 @@ const Menu = () => {
               </NavLink>
             </li>
 
-            <li>
-              <NavLink
-                to="/dashboard"
-                className={({ isActive }) => (isActive ? activeTab : tab)}
-              >
-                Dashboard
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/transfer"
-                className={({ isActive }) => (isActive ? activeTab : tab)}
-              >
-                Transfer
-              </NavLink>
-            </li>
             {user ? (
               <>
+                <li>
+                  <NavLink
+                    to="/dashboard"
+                    className={({ isActive }) => (isActive ? activeTab : tab)}
+                  >
+                    Dashboard
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/transfer"
+                    className={({ isActive }) => (isActive ? activeTab : tab)}
+                  >
+                    Transfer
+                  </NavLink>
+                </li>
                 <li onClick={handleLogout} className={tab}  >
                   Logout
                 </li>
